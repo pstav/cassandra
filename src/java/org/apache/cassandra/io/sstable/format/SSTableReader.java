@@ -1968,8 +1968,9 @@ public abstract class SSTableReader extends SSTable implements SelfRefCounted<SS
     {
         // A sstable is guaranteed to have no tombstones if it properly tracked the minLocalDeletionTime (which we only
         // do since 3.0 - see CASSANDRA-13366) and that value is still set to its default, Cell.NO_DELETION_TIME, which
-        // is bigger than any valid deletion times.
-        return !descriptor.version.storeRows() || getMinLocalDeletionTime() != Cell.NO_DELETION_TIME;
+        // is bigger than any valid deletion times, or bigger than current time (for ttl only tombstones)
+        return !descriptor.version.storeRows() ||
+                (getMinLocalDeletionTime() != Cell.NO_DELETION_TIME && getMinLocalDeletionTime() < System.currentTimeMillis()/1000);
     }
 
     public int getMinTTL()
